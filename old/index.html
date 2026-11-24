@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tickets</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tickets">
+    <meta name="theme-color" content="#121212">
+
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+
+    <script src="https://cdn.jsdelivr.net/npm/bwip-js@3.4.2/dist/bwip-js-min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        [class*="netlify"], [id*="netlify"], iframe[src*="netlify"] { display: none !important; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #0f0f0f; color: #ffffff; display: flex; justify-content: center; height: 100vh; height: 100dvh; overflow: hidden; }
+        #app { width: 100%; max-width: 430px; height: 100%; background-color: #121212; position: relative; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+        .header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background-color: #121212; z-index: 10; }
+        .location { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; }
+        .location i { color: #40bcf4; }
+        .lang-btn { background: #1e1e1e; border: none; color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 5px; font-weight: 600; }
+        .lang-btn i { color: #40bcf4; }
+        .search-container { padding: 0 20px 15px; background-color: #121212; z-index: 10; }
+        .search-bar { background-color: #ffffff; border-radius: 25px; display: flex; align-items: center; padding: 10px 15px; gap: 12px; }
+        .search-bar i { color: #333; font-size: 18px; }
+        .search-bar input { border: none; background: transparent; outline: none; font-size: 15px; width: 100%; color: #333; }
+        .search-bar input::placeholder { color: #999; }
+        .main-content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+        .main-content::-webkit-scrollbar { display: none; }
+        .section-title { padding: 15px 20px 10px; font-size: 18px; font-weight: 700; }
+        .horizontal-scroll { display: flex; gap: 15px; padding: 0 20px 15px; overflow-x: auto; scroll-snap-type: x mandatory; }
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
+        .h-card { flex: 0 0 260px; background-color: #1e1e1e; border-radius: 12px; overflow: hidden; scroll-snap-align: start; position: relative; cursor: pointer; }
+        .h-card-img { width: 100%; height: 140px; object-fit: cover; background-color: #333; }
+        .h-card-info { padding: 12px; }
+        .h-card-date { color: #ef4444; font-size: 11px; font-weight: 800; margin-bottom: 4px; }
+        .h-card-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .h-card-loc { color: #888; font-size: 11px; display: flex; align-items: center; gap: 4px; }
+        .card { background-color: #1e1e1e; border-radius: 12px; overflow: hidden; margin: 0 20px 15px; position: relative; cursor: pointer; }
+        .card-img { width: 100%; height: 180px; object-fit: cover; background-color: #333; }
+        .card-info { padding: 15px; }
+        .card-date { color: #ef4444; font-size: 12px; font-weight: 800; margin-bottom: 5px; }
+        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 5px; }
+        .card-loc { color: #888; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .list-item { display: flex; align-items: center; padding: 10px 20px; gap: 15px; border-bottom: 1px solid #222; cursor: pointer; }
+        .list-num { font-size: 20px; font-weight: 800; color: #888; width: 30px; font-family: monospace; }
+        .list-img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; background-color: #333; }
+        .list-details { flex: 1; }
+        .list-title { font-size: 15px; font-weight: 600; }
+        .list-sub { font-size: 12px; color: #888; margin-top: 3px; }
+        .list-heart { color: #fff; font-size: 18px; }
+        
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: 70px; background-color: #121212; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; padding-bottom: max(15px, env(safe-area-inset-bottom)); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #888; font-size: 10px; font-weight: 500; cursor: pointer; width: 60px; }
+        .nav-item svg { width: 24px; height: 24px; }
+        .nav-item span { margin-top: 2px; }
+        
+        .nav-item.active { color: #fff; }
+        .nav-item.active .nav-icon { stroke: #fff; }
+        .nav-item.active .nav-icon-fill { fill: #fff; }
+        
+        .nav-item.active#nav-mytickets .nav-icon { stroke: #0057ff; }
+        .nav-item.active#nav-mytickets .nav-icon-fill { fill: #0057ff; }
+        
+        .nav-icon { stroke: #888; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; transition: 0.2s; }
+        .nav-icon-fill { fill: #888; stroke: none; transition: 0.2s; }
+
+        .home-logo-circle { fill: #0057ff; }
+        .nav-item:not(.active) .home-logo-circle { fill: #555; }
+        .home-logo-t { fill: #fff; }
+        .nav-item:not(.active) .home-logo-t { fill: #888; }
+        .home-logo-spark { fill: #fff; }
+        .nav-item:not(.active) .home-logo-spark { fill: #888; }
+
+        .view { display: none; height: 100%; flex-direction: column; background-color: #121212; }
+        .view.active { display: flex; }
+        .watchlist-header { text-align: center; padding: 30px 20px 10px; }
+        .watchlist-header h2 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+        .watchlist-header p { color: #888; font-size: 13px; margin-top: 5px; }
+        .toggle-container { display: flex; padding: 10px 20px; gap: 10px; }
+        .toggle-btn { flex: 1; padding: 12px; border-radius: 25px; border: none; background-color: #1e1e1e; color: #888; font-weight: 600; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .toggle-btn.active { background-color: #9d50ff; color: #fff; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; text-align: center; }
+        .empty-state i { font-size: 40px; color: #9d50ff; margin-bottom: 15px; }
+        .empty-state h3 { font-size: 16px; margin-bottom: 5px; }
+        .feature-row { display: flex; align-items: center; text-align: left; width: 100%; padding: 15px 20px; gap: 15px; }
+        .feature-row i { font-size: 18px; color: #9d50ff; }
+        .feature-text h4 { font-size: 14px; font-weight: 600; }
+        .feature-text p { font-size: 12px; color: #888; margin-top: 2px; }
+        .ticket-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; }
+        .ticket-header h2 { font-size: 16px; font-weight: 600; }
+        .ticket-header a { color: #fff; text-decoration: none; font-size: 13px; }
+        .ticket-tabs { display: flex; border-bottom: 1px solid #333; margin: 0 20px; }
+        .ticket-tab { flex: 1; text-align: center; padding: 12px 0; font-size: 12px; font-weight: 600; color: #888; }
+        .ticket-tab.active { color: #fff; border-bottom: 2px solid #fff; }
+        .next-event-text { padding: 20px; font-size: 15px; font-weight: 600; }
+
+        /* SWIPE TO DELETE STYLES */
+        .swipe-container {
+            position: relative;
+            overflow: hidden;
+            margin: 0 20px 15px;
+            border-radius: 12px;
+            background-color: #ef4444;
+        }
+        .swipe-delete-bg {
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 100px;
+            background-color: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 1;
+        }
+        .ticket-card {
+            background-color: #1e1e1e;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(0);
+            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .ticket-card-img { width: 100%; height: 220px; object-fit: cover; background-color: #333; }
+        .ticket-card-info { padding: 15px; background-color: #1e1e1e; }
+        .tc-date { font-size: 12px; font-weight: 700; color: #ccc; margin-bottom: 5px; }
+        .tc-title { font-size: 24px; font-weight: 800; margin-bottom: 5px; }
+        .tc-loc { font-size: 13px; color: #aaa; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .tc-loc i { font-size: 16px; color: #fff; }
+        .view-tickets-btn { background-color: #2843cc; color: #fff; border: none; width: 100%; padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        
+        .account-profile { display: flex; align-items: center; gap: 15px; padding: 20px; }
+        .profile-pic { width: 50px; height: 50px; border-radius: 50%; background-color: #0057ff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; }
+        .profile-info h2 { font-size: 18px; font-weight: 700; }
+        .profile-info p { font-size: 12px; color: #888; }
+        .settings-group { margin-bottom: 25px; }
+        .settings-title { padding: 0 20px 10px; font-size: 14px; font-weight: 600; color: #ccc; }
+        .settings-item { display: flex; align-items: center; padding: 15px 20px; background-color: #1e1e1e; border-bottom: 1px solid #2a2a2a; gap: 15px; font-size: 14px; }
+        .settings-item:first-of-type { border-top-left-radius: 12px; border-top-right-radius: 12px; margin: 0 20px; }
+        .settings-item:last-of-type { border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border-bottom: none; margin: 0 20px; }
+        .settings-item i { width: 20px; color: #ccc; text-align: center; }
+        .settings-item span { flex: 1; }
+        .toggle-switch { width: 40px; height: 24px; background-color: #333; border-radius: 12px; position: relative; transition: 0.3s; }
+        .toggle-switch::after { content: ''; position: absolute; width: 20px; height: 20px; background-color: #fff; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+        .toggle-switch.on { background-color: #0057ff; }
+        .toggle-switch.on::after { transform: translateX(16px); }
+        .chevron { color: #555; font-size: 12px; }
+        .generate-form { padding: 0 20px 20px; }
+        .generate-form input { width: 100%; background-color: #1e1e1e; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-family: inherit; }
+        .generate-btn { width: 100%; background-color: #ef4444; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+        
+        .ticket-detail-view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #121212; z-index: 200; display: none; flex-direction: column; overflow-y: auto; padding-bottom: 80px; }
+        .ticket-detail-view.active { display: flex; }
+        .ticket-detail-view::-webkit-scrollbar { display: none; }
+        
+        .detail-hero-section { position: relative; height: 300px; background-color: #000; flex-shrink: 0; }
+        .detail-hero-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .detail-nav { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; z-index: 10; }
+        .nav-circle { width: 40px; height: 40px; border-radius: 50%; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-actions { display: flex; gap: 10px; align-items: center; }
+        .nav-pill { padding: 8px 16px; border-radius: 20px; background-color: rgba(0,0,0,0.6); font-size: 13px; font-weight: 600; }
+        
+        .detail-info-block { background-color: #1e1e1e; padding: 20px; position: relative; margin-top: -50px; z-index: 5; border-radius: 12px 12px 0 0; flex-shrink: 0; }
+        .detail-date-tag { display: inline-block; background-color: #333; padding: 5px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+        .detail-event-title { font-size: 28px; font-weight: 800; margin-bottom: 5px; }
+        .detail-event-loc { font-size: 14px; color: #aaa; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .detail-event-loc i { color: #fff; }
+        .detail-view-btn { background-color: #2843cc; color: #fff; border: none; width: 100%; padding: 16px; font-size: 16px; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 10px; cursor: pointer; flex-shrink: 0; }
+        .detail-tabs { display: flex; border-bottom: 1px solid #333; margin: 15px 20px 0; flex-shrink: 0; }
+        .detail-tab { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 600; color: #888; }
+        .detail-tab.active { color: #fff; border-bottom: 2px solid #fff; }
+        .order-section { padding: 20px; flex-shrink: 0; }
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .order-num { font-size: 18px; font-weight: 700; }
+        .order-sub { font-size: 13px; color: #888; margin-top: 2px; }
+        .order-menu { color: #888; font-size: 18px; cursor: pointer; }
+        .admission-box { background-color: #1e1e1e; border-radius: 8px; overflow: hidden; }
+        .admission-title { padding: 15px; font-size: 15px; font-weight: 700; border-bottom: 1px solid #333; }
+        .admission-grid { display: flex; padding: 15px; gap: 20px; }
+        .admission-item { flex: 1; }
+        .admission-label { font-size: 12px; color: #888; margin-bottom: 5px; font-weight: 600; letter-spacing: 0.5px; }
+        .admission-value { font-size: 18px; font-weight: 700; }
+        
+        .floating-actions { margin: 0 20px 30px; background-color: #fff; border-radius: 30px; display: flex; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        
+        .action-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; color: #555; font-size: 12px; font-weight: 600; cursor: pointer; border-right: 1px solid #eee; }
+        .action-btn:last-child { border-right: none; }
+        .action-btn i { font-size: 18px; margin-bottom: 5px; color: #888; }
+        .action-btn.active { color: #2843cc; }
+        .action-btn.active i { color: #2843cc; }
+        .barcode-screen-view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #f5f5f5; z-index: 300; display: none; flex-direction: column; overflow-y: auto; color: #000; }
+        .barcode-screen-view.active { display: flex; }
+        .barcode-screen-view::-webkit-scrollbar { display: none; }
+        .barcode-header { background-color: #f5f5f5; padding: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #e0e0e0; }
+        .barcode-header i { font-size: 20px; cursor: pointer; }
+        .barcode-header-text h2 { font-size: 16px; font-weight: 700; }
+        .barcode-header-text p { font-size: 13px; color: #666; margin-top: 2px; }
+        .barcode-hero-section { position: relative; background-color: #000; height: 350px; }
+        .barcode-hero-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .barcode-white-card { position: absolute; top: 20px; left: 20px; right: 20px; background-color: #fff; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .barcode-warning { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 13px; color: #888; margin-bottom: 15px; font-weight: 500; }
+        .barcode-warning i { color: #888; font-size: 14px; }
+        .barcode-container { position: relative; width: 100%; display: flex; justify-content: center; overflow: hidden; padding: 5px 0; }
+        #barcode-canvas { max-width: 100%; height: 70px; object-fit: contain; }
+        .scanning-line { position: absolute; top: 0; bottom: 0; width: 3px; background-color: #2843cc; box-shadow: 0 0 8px 2px rgba(40, 67, 204, 0.6); animation: scan 2.5s infinite linear; z-index: 10; }
+        @keyframes scan { 0% { left: 0%; } 50% { left: 100%; } 100% { left: 0%; } }
+        .barcode-details { background-color: #f5f5f5; padding: 20px; flex: 1; }
+        .ticket-type { font-size: 22px; font-weight: 800; margin-bottom: 5px; color: #000; }
+        .ticket-type-sub { font-size: 16px; color: #555; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ccc; }
+        .big-section-label { font-size: 14px; color: #888; font-weight: 700; margin-bottom: 5px; }
+        .big-section-value { font-size: 36px; font-weight: 800; color: #000; margin-bottom: 20px; line-height: 1; }
+        .info-list { display: flex; flex-direction: column; gap: 12px; }
+        .info-list-item { display: flex; flex-direction: column; }
+        .info-list-label { font-size: 14px; color: #888; margin-bottom: 2px; }
+        .info-list-value { font-size: 16px; font-weight: 700; color: #000; }
+        .delete-ticket-btn { display: none; }
+
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 400; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .transfer-modal { background-color: #1e1e1e; width: 100%; max-width: 400px; border-radius: 16px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(0.9); opacity: 0; transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
+        .modal-overlay.active .transfer-modal { transform: scale(1); opacity: 1; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 20px; font-weight: 700; }
+        .modal-close { background: #333; border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; }
+        .transfer-modal p { color: #aaa; font-size: 14px; margin-bottom: 20px; line-height: 1.4; }
+        .transfer-form input { width: 100%; background-color: #121212; border: 1px solid #333; color: #fff; padding: 14px; border-radius: 8px; margin-bottom: 15px; font-family: inherit; font-size: 15px; }
+        .transfer-form input:focus { outline: none; border-color: #2843cc; }
+        .confirm-transfer-btn { width: 100%; background-color: #2843cc; color: #fff; border: none; padding: 16px; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="view-home" class="view active">
+        <div class="header">
+            <div class="location">
+                <i class="fa-solid fa-location-dot"></i>
+                Los Angeles, CA <i class="fa-solid fa-chevron-right" style="font-size: 10px; margin-left: 5px;"></i>
+            </div>
+            <button class="lang-btn"><i class="fa-solid fa-globe"></i> EN</button>
+        </div>
+
+        <div class="search-container">
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass" style="color: #1a73e8;"></i>
+                <input type="text" placeholder="Search for">
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section-title">For You</div>
+
+            <div class="horizontal-scroll">
+                <!-- UPDATED DATES TO BE PARSEABLE -->
+                <div class="h-card" onclick="openGenFromCard('TEDDY SWIMS', 'Various, Los Angeles, CA', 'SAT • JUN 22, 2024 • 8:00 PM', 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=95&w=1400')">
+                    <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=95&w=1400" class="h-card-img" alt="Concert">
+                    <div class="h-card-info">
+                        <div class="h-card-date">JUN 22 • Monday • TBA</div>
+                        <div class="h-card-title">TEDDY SWIMS</div>
+                        <div class="h-card-loc"><i class="fa-solid fa-location-dot"></i> Various</div>
+                    </div>
+                </div>
+                <div class="h-card" onclick="openGenFromCard('FUTURE & METRO', 'Crypto.com Arena, LA', 'MON • JUL 15, 2024 • 8:00 PM', 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=95&w=1400')">
+                    <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=95&w=1400" class="h-card-img" alt="Concert">
+                    <div class="h-card-info">
+                        <div class="h-card-date">JUL 15 • Thursday • 8:00 PM</div>
+                        <div class="h-card-title">FUTURE & METRO</div>
+                        <div class="h-card-loc"><i class="fa-solid fa-location-dot"></i> Crypto.com Arena</div>
+                    </div>
+                </div>
+                <div class="h-card" onclick="openGenFromCard('BILLIE EILISH', 'Kia Forum, Inglewood', 'MON • AUG 05, 2024 • 7:30 PM', 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400')">
+                    <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400" class="h-card-img" alt="Concert">
+                    <div class="h-card-info">
+                        <div class="h-card-date">AUG 05 • Monday • 7:30 PM</div>
+                        <div class="h-card-title">BILLIE EILISH</div>
+                        <div class="h-card-loc"><i class="fa-solid fa-location-dot"></i> Kia Forum</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Trending In The United States</div>
+            <div style="display: flex; justify-content: space-between; padding: 0 20px 10px; color: #888; font-size: 13px;">
+                <span></span>
+                <span>View All</span>
+            </div>
+
+            <div class="list-item" onclick="openGenFromCard('TRANS-SIBERIAN ORCHESTRA', 'Madison Square Garden, NY', 'SUN • DEC 15, 2024 • 7:00 PM', 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=95&w=1400')">
+                <div class="list-num">01</div>
+                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=95&w=200" class="list-img" alt="Artist">
+                <div class="list-details">
+                    <div class="list-title">Trans-Siberian Orchestra</div>
+                    <div class="list-sub">Concerts</div>
+                </div>
+                <i class="fa-regular fa-heart list-heart"></i>
+            </div>
+
+            <div class="list-item" onclick="openGenFromCard('DON OMAR', 'Crypto.com Arena, LA', 'SUN • AUG 10, 2024 • 9:00 PM', 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&q=95&w=1400')">
+                <div class="list-num">02</div>
+                <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&q=95&w=200" class="list-img" alt="Artist">
+                <div class="list-details">
+                    <div class="list-title">Don Omar</div>
+                    <div class="list-sub">Concerts</div>
+                </div>
+                <i class="fa-regular fa-heart list-heart"></i>
+            </div>
+
+            <div class="list-item" onclick="openGenFromCard('OASIS', 'Celtic Park, Glasgow, UK', 'FRI • MAY 21, 2027 • 8:00 PM', 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400')">
+                <div class="list-num">03</div>
+                <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=200" class="list-img" alt="Artist">
+                <div class="list-details">
+                    <div class="list-title">Oasis</div>
+                    <div class="list-sub">Concerts</div>
+                </div>
+                <i class="fa-regular fa-heart list-heart"></i>
+            </div>
+            
+            <div class="list-item" onclick="openGenFromCard('BAD BUNNY', 'SoFi Stadium, LA', 'SAT • OCT 05, 2024 • 8:00 PM', 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=95&w=1400')">
+                <div class="list-num">04</div>
+                <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=95&w=200" class="list-img" alt="Artist">
+                <div class="list-details">
+                    <div class="list-title">Bad Bunny</div>
+                    <div class="list-sub">Concerts</div>
+                </div>
+                <i class="fa-regular fa-heart list-heart"></i>
+            </div>
+
+            <div class="list-item" onclick="openGenFromCard('ZACH BRYAN', 'The Kia Forum, Inglewood', 'WED • NOV 12, 2024 • 7:00 PM', 'https://images.unsplash.com/photo-1493225457124-a1a2a4c7e2c9?auto=format&fit=crop&q=95&w=1400')">
+                <div class="list-num">05</div>
+                <img src="https://images.unsplash.com/photo-1493225457124-a1a2a4c7e2c9?auto=format&fit=crop&q=95&w=200" class="list-img" alt="Artist">
+                <div class="list-details">
+                    <div class="list-title">Zach Bryan</div>
+                    <div class="list-sub">Concerts</div>
+                </div>
+                <i class="fa-regular fa-heart list-heart"></i>
+            </div>
+
+            <div class="section-title">Recommended For You</div>
+            <div class="card" style="margin-bottom: 20px;" onclick="openGenFromCard('ARCTIC MONKEYS', 'The Kia Forum, Inglewood', 'THU • SEP 12, 2024 • 8:00 PM', 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400')">
+                <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400" class="card-img" alt="Concert">
+                <div class="card-info">
+                    <div class="card-date">SEP 12 • Friday • 8:00 PM</div>
+                    <div class="card-title">ARCTIC MONKEYS</div>
+                    <div class="card-loc"><i class="fa-solid fa-location-dot"></i> The Kia Forum, Inglewood</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-watchlist" class="view">
+        <div class="watchlist-header">
+            <h2>WATCHLIST</h2>
+            <p>Keep track of what's important</p>
+        </div>
+        <div class="toggle-container">
+            <button class="toggle-btn active"><i class="fa-solid fa-bookmark"></i> Events</button>
+            <button class="toggle-btn"><i class="fa-regular fa-heart"></i> Favourites</button>
+        </div>
+        <div class="main-content">
+            <div class="empty-state">
+                <i class="fa-solid fa-bookmark"></i>
+                <h3>No Events Added</h3>
+            </div>
+            <div class="feature-row">
+                <i class="fa-regular fa-calendar-days"></i>
+                <div class="feature-text">
+                    <h4>Save Events</h4>
+                    <p>Easily jump back into events that you have an interest in going to</p>
+                </div>
+            </div>
+            <div class="feature-row">
+                <i class="fa-regular fa-bell"></i>
+                <div class="feature-text">
+                    <h4>Never Miss A Presale</h4>
+                    <p>Set alerts so you never miss out on those presale tickets</p>
+                </div>
+            </div>
+            <div class="feature-row">
+                <i class="fa-solid fa-circle-info"></i>
+                <div class="feature-text">
+                    <h4>Stay Informed</h4>
+                    <p>Receive alerts and updates about key event information</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-mytickets" class="view">
+        <div class="ticket-header">
+            <h2>My Events 🇺🇸</h2>
+            <a href="#">Help</a>
+        </div>
+        <div class="ticket-tabs">
+            <div class="ticket-tab active" id="upcoming-tab">UPCOMING (1)</div>
+            <div class="ticket-tab">PAST (1)</div>
+        </div>
+        <div class="main-content" id="my-tickets-content">
+            <div class="next-event-text">Next Event: <span id="days-count">182</span> days</div>
+
+            <div id="generated-tickets-list"></div>
+            
+            <!-- STATIC OASIS CARD WITH SWIPE TO DELETE -->
+            <div class="swipe-container" id="static-oasis-container">
+                <div class="swipe-delete-bg" onclick="deleteStaticTicket()">
+                    <i class="fa-solid fa-trash" style="margin-right: 5px;"></i> Delete
+                </div>
+                <div class="ticket-card" id="static-oasis-card">
+                    <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400" class="ticket-card-img" alt="Oasis">
+                    <div class="ticket-card-info">
+                        <div class="tc-date">FRI • MAY 21, 2027 • 8:00 PM</div>
+                        <div class="tc-title">OASIS</div>
+                        <div class="tc-loc">
+                            Celtic Park, Glasgow, UK
+                            <span><i class="fa-solid fa-ticket"></i> x1</span>
+                        </div>
+                    </div>
+                    <button class="view-tickets-btn" onclick="openOrderDetails('OASIS', 'Celtic Park, Glasgow, UK', 'FRI • MAY 21, 2027 • 8:00 PM', '12', 'R', '1', 'Moreno', '71898194', 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400', true, 'static', 'Gate C', '17:30')">
+                        <i class="fa-solid fa-barcode"></i> View Tickets
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-account" class="view">
+        <div class="main-content">
+            <div class="account-profile">
+                <div class="profile-pic">B</div>
+                <div class="profile-info">
+                    <h2>Blackknight</h2>
+                    <p>blackknight01020@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-title">Ticket Generator</div>
+                <div class="generate-form">
+                    <input type="text" id="gen-event" placeholder="Event Name (e.g., OASIS)" value="OASIS">
+                    <input type="text" id="gen-loc" placeholder="Location (e.g., Celtic Park)" value="Celtic Park, Glasgow, UK">
+                    <input type="text" id="gen-date" placeholder="Date & Time" value="FRI • MAY 21, 2027 • 8:00 PM">
+                    <input type="text" id="gen-section" placeholder="Section" value="12">
+                    <input type="text" id="gen-row" placeholder="Row" value="R">
+                    <input type="text" id="gen-seat" placeholder="Seat" value="1">
+                    <input type="text" id="gen-entrance" placeholder="Entrance/Gate" value="Gate A">
+                    <input type="text" id="gen-doors" placeholder="Doors Open (Time)" value="16:00">
+                    <input type="text" id="gen-holder" placeholder="Ticket Holder" value="Moreno">
+                    <input type="text" id="gen-image" placeholder="Image URL (optional)" value="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400">
+                    <button class="generate-btn" onclick="generateTicket()">Generate Ticket</button>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-title">Personalization</div>
+                <div class="settings-item">
+                    <i class="fa-regular fa-envelope"></i>
+                    <span>My Inbox</span>
+                    <i class="fa-solid fa-chevron-right chevron"></i>
+                </div>
+                <div class="settings-item">
+                    <i class="fa-regular fa-heart"></i>
+                    <span>Favourites</span>
+                    <i class="fa-solid fa-chevron-right chevron"></i>
+                </div>
+                <div class="settings-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>Location</span>
+                    <i class="fa-solid fa-chevron-right chevron"></i>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-title">Permissions</div>
+                <div class="settings-item">
+                    <i class="fa-regular fa-paper-plane"></i>
+                    <span>Location Content</span>
+                    <div class="toggle-switch"></div>
+                </div>
+                <div class="settings-item">
+                    <i class="fa-regular fa-bell"></i>
+                    <span>Notifications</span>
+                    <div class="toggle-switch on"></div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-title">Account</div>
+                <div class="settings-item">
+                    <i class="fa-regular fa-user"></i>
+                    <span>Edit Details</span>
+                    <i class="fa-solid fa-chevron-right chevron"></i>
+                </div>
+                <div class="settings-item">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Security</span>
+                    <i class="fa-solid fa-chevron-right chevron"></i>
+                </div>
+                <div class="settings-item">
+                    <i class="fa-regular fa-credit-card"></i>
+                    <span>Saved Payment Methods</span>
+                    <i class="fa-solid fa-chevron-right chevron"></i>
+                </div>
+                <div class="settings-item">
+                    <i class="fa-solid fa-circle-dollar-to-slot"></i>
+                    <span>Sell tickets</span>
+                    <i class="fa-solid fa-chevron-right chevron"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-order-details" class="ticket-detail-view">
+        <div class="detail-hero-section">
+            <img src="" id="od-image" class="detail-hero-img" alt="Event">
+            <div class="detail-nav">
+                <div class="nav-circle" onclick="closeOrderDetails()">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </div>
+                <div class="nav-actions">
+                    <div class="nav-pill">Help</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-info-block">
+            <div class="detail-date-tag" id="od-date">FRI • MAY 21, 2027 • 8:00 PM</div>
+            <div class="detail-event-title" id="od-title">OASIS</div>
+            <div class="detail-event-loc">
+                <span id="od-loc">Celtic Park, Glasgow, UK</span>
+                <span><i class="fa-solid fa-ticket"></i> x1</span>
+            </div>
+        </div>
+
+        <button class="detail-view-btn" onclick="openBarcodeView()">
+            <i class="fa-solid fa-barcode"></i> View Tickets
+        </button>
+
+        <div class="detail-tabs">
+            <div class="detail-tab active">Tickets</div>
+            <div class="detail-tab">Extras</div>
+        </div>
+
+        <div class="order-section">
+            <div class="order-header">
+                <div>
+                    <div class="order-num" id="od-order-num">Order #71898194</div>
+                    <div class="order-sub">x1 Tickets</div>
+                </div>
+                <div class="order-menu"><i class="fa-solid fa-ellipsis-vertical"></i></div>
+            </div>
+
+            <div class="admission-box">
+                <div class="admission-title">General Admission</div>
+                <div class="admission-grid">
+                    <div class="admission-item">
+                        <div class="admission-label">SECTION</div>
+                        <div class="admission-value" id="od-section">12</div>
+                    </div>
+                    <div class="admission-item">
+                        <div class="admission-label">ROW</div>
+                        <div class="admission-value" id="od-row">R</div>
+                    </div>
+                    <div class="admission-item">
+                        <div class="admission-label">SEAT</div>
+                        <div class="admission-value" id="od-seat">1</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="floating-actions">
+            <div class="action-btn">
+                <i class="fa-solid fa-arrow-up"></i>
+                Upgrade
+            </div>
+            <div class="action-btn active" onclick="openTransferModal()">
+                <i class="fa-solid fa-arrow-up-right"></i>
+                Transfer
+            </div>
+            <div class="action-btn">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                Sell
+            </div>
+        </div>
+    </div>
+
+    <div id="view-barcode" class="barcode-screen-view">
+        <div class="barcode-header">
+            <i class="fa-solid fa-arrow-left" onclick="closeBarcodeView()"></i>
+            <div class="barcode-header-text">
+                <h2 id="bc-header-title">Oasis</h2>
+                <p id="bc-header-sub">Fri, May 21, 8:00 PM - Celtic Park</p>
+            </div>
+        </div>
+
+        <div class="barcode-hero-section">
+            <img src="" id="bc-image" class="barcode-hero-img" alt="Event">
+            <div class="barcode-white-card">
+                <div class="barcode-warning">
+                    Screenshots won't get you in <i class="fa-solid fa-rotate-right"></i>
+                </div>
+                <div class="barcode-container">
+                    <canvas id="barcode-canvas"></canvas>
+                    <div class="scanning-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="barcode-details">
+            <div class="ticket-type">STANDARD</div>
+            <div class="ticket-type-sub">General Admission</div>
+
+            <div class="big-section-label">SECTION</div>
+            <div class="big-section-value" id="bc-section">12</div>
+
+            <div class="info-list">
+                <div class="info-list-item">
+                    <div class="info-list-label">Row</div>
+                    <div class="info-list-value" id="bc-row">R</div>
+                </div>
+                <div class="info-list-item">
+                    <div class="info-list-label">Seat</div>
+                    <div class="info-list-value" id="bc-seat">1</div>
+                </div>
+                <div class="info-list-item">
+                    <div class="info-list-label">Entrance</div>
+                    <div class="info-list-value" id="bc-entrance">Gate A</div>
+                </div>
+                <div class="info-list-item">
+                    <div class="info-list-label">Holder</div>
+                    <div class="info-list-value" id="bc-holder">Moreno</div>
+                </div>
+                <div class="info-list-item">
+                    <div class="info-list-label">Doors open</div>
+                    <div class="info-list-value" id="bc-doors">16:00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="transfer-modal-overlay" class="modal-overlay">
+        <div class="transfer-modal">
+            <div class="modal-header">
+                <h3>Transfer Ticket</h3>
+                <button class="modal-close" onclick="closeTransferModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p>Enter the recipient's details to securely transfer this ticket.</p>
+            <div class="transfer-form">
+                <input type="text" id="transfer-name" placeholder="Recipient's Full Name" autocomplete="off">
+                <input type="email" id="transfer-email" placeholder="Recipient's Email Address" autocomplete="off">
+                <button class="confirm-transfer-btn" onclick="confirmTransfer()">Confirm Transfer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" id="nav-home" onclick="switchView('home', this)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle class="home-logo-circle" cx="12" cy="12" r="10"/>
+                <path class="home-logo-t" d="M9.5 8.5h5v1.8h-1.7v5.2h-1.6v-5.2h-1.7z"/>
+                <path class="home-logo-spark" d="M19.5 3.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"/>
+            </svg>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" id="nav-watchlist" onclick="switchView('watchlist', this)">
+            <svg class="nav-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 4h12v16l-6-4-6 4z" stroke-width="1.5"/>
+            </svg>
+            <span>Watchlist</span>
+        </div>
+        <div class="nav-item" id="nav-mytickets" onclick="switchView('mytickets', this)">
+            <svg class="nav-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="6" width="18" height="12" rx="2" stroke-width="1.5"/>
+                <path d="M8 6v12M16 6v12" stroke-width="1.5"/>
+                <rect x="11" y="10" width="6" height="4" rx="1" class="nav-icon-fill"/>
+            </svg>
+            <span>My Tickets</span>
+        </div>
+        <div class="nav-item" id="nav-account" onclick="switchView('account', this)">
+            <svg class="nav-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="9" stroke-width="1.5"/>
+                <circle cx="12" cy="10" r="3" stroke-width="1.5"/>
+                <path d="M6 18c1.5-2 3.5-3 6-3s4.5 1 6 3" stroke-width="1.5"/>
+            </svg>
+            <span>Account</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let generatedTickets = JSON.parse(localStorage.getItem('generatedTickets')) || [];
+    let ticketIdCounter = 1000;
+    let currentTicketData = null;
+
+    function switchView(viewName, navElement) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(`view-${viewName}`).classList.add('active');
+        
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(navElement) navElement.classList.add('active');
+        
+        closeOrderDetails();
+        closeBarcodeView();
+        closeTransferModal();
+    }
+
+    function openGenFromCard(event, loc, date, image) {
+        document.getElementById('gen-event').value = event;
+        document.getElementById('gen-loc').value = loc;
+        document.getElementById('gen-date').value = date;
+        document.getElementById('gen-image').value = image;
+        switchView('account', document.querySelectorAll('.nav-item')[3]);
+        document.querySelector('.main-content').scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function generateTicket() {
+        const event = document.getElementById('gen-event').value || "OASIS";
+        const loc = document.getElementById('gen-loc').value || "Celtic Park, Glasgow, UK";
+        const date = document.getElementById('gen-date').value || "FRI • MAY 21, 2027 • 8:00 PM";
+        const section = document.getElementById('gen-section').value || "12";
+        const row = document.getElementById('gen-row').value || "R";
+        const seat = document.getElementById('gen-seat').value || "1";
+        const entrance = document.getElementById('gen-entrance').value || "Gate A";
+        const doors = document.getElementById('gen-doors').value || "16:00";
+        const holder = document.getElementById('gen-holder').value || "Moreno";
+        
+        let image = document.getElementById('gen-image').value;
+        if (!image) {
+            image = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=95&w=1400";
+        }
+
+        const orderNum = Math.floor(10000000 + Math.random() * 90000000);
+
+        const newTicket = {
+            id: ticketIdCounter++,
+            event, loc, date, section, row, seat, entrance, doors, holder, orderNum, image
+        };
+
+        generatedTickets.push(newTicket);
+        localStorage.setItem('generatedTickets', JSON.stringify(generatedTickets));
+        renderGeneratedTickets();
+        
+        switchView('mytickets', document.querySelectorAll('.nav-item')[2]);
+    }
+
+    function renderGeneratedTickets() {
+        const list = document.getElementById('generated-tickets-list');
+        list.innerHTML = '';
+
+        generatedTickets.forEach(ticket => {
+            const container = document.createElement('div');
+            container.className = 'swipe-container';
+            
+            container.innerHTML = `
+                <div class="swipe-delete-bg" onclick="deleteTicket(${ticket.id})">
+                    <i class="fa-solid fa-trash" style="margin-right: 5px;"></i> Delete
+                </div>
+                <div class="ticket-card">
+                    <img src="${ticket.image}" class="ticket-card-img" alt="${ticket.event}">
+                    <div class="ticket-card-info">
+                        <div class="tc-date">${ticket.date}</div>
+                        <div class="tc-title">${ticket.event.toUpperCase()}</div>
+                        <div class="tc-loc">
+                            ${ticket.loc}
+                            <span><i class="fa-solid fa-ticket"></i> x1</span>
+                        </div>
+                    </div>
+                    <button class="view-tickets-btn" onclick="openOrderDetails('${ticket.event}', '${ticket.loc}', '${ticket.date}', '${ticket.section}', '${ticket.row}', '${ticket.seat}', '${ticket.holder}', '${ticket.orderNum}', '${ticket.image}', true, ${ticket.id}, '${ticket.entrance}', '${ticket.doors}')">
+                        <i class="fa-solid fa-barcode"></i> View Tickets
+                    </button>
+                </div>
+            `;
+            
+            const card = container.querySelector('.ticket-card');
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+            const maxSwipe = 100;
+
+            card.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                card.style.transition = 'none';
+            });
+
+            card.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX - startX;
+                if (currentX > 0) currentX = 0;
+                if (currentX < -maxSwipe) currentX = -maxSwipe;
+                card.style.transform = `translateX(${currentX}px)`;
+            });
+
+            card.addEventListener('touchend', () => {
+                isDragging = false;
+                card.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                if (currentX < -50) {
+                    card.style.transform = `translateX(-${maxSwipe}px)`;
+                } else {
+                    card.style.transform = 'translateX(0)';
+                }
+                currentX = 0;
+            });
+
+            list.appendChild(container);
+        });
+        
+        const staticCard = document.getElementById('static-oasis-card');
+        const staticContainer = document.getElementById('static-oasis-container');
+        
+        if (staticCard && staticContainer) {
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+            const maxSwipe = 100;
+
+            staticCard.replaceWith(staticCard.cloneNode(true));
+            const newStaticCard = document.getElementById('static-oasis-card');
+
+            newStaticCard.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                newStaticCard.style.transition = 'none';
+            });
+
+            newStaticCard.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX - startX;
+                if (currentX > 0) currentX = 0;
+                if (currentX < -maxSwipe) currentX = -maxSwipe;
+                newStaticCard.style.transform = `translateX(${currentX}px)`;
+            });
+
+            newStaticCard.addEventListener('touchend', () => {
+                isDragging = false;
+                newStaticCard.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                if (currentX < -50) {
+                    newStaticCard.style.transform = `translateX(-${maxSwipe}px)`;
+                } else {
+                    newStaticCard.style.transform = 'translateX(0)';
+                }
+                currentX = 0;
+            });
+        }
+
+        updateTicketCount();
+        updateDaysCount(); 
+    }
+
+    function deleteTicket(id) {
+        generatedTickets = generatedTickets.filter(t => t.id !== id);
+        localStorage.setItem('generatedTickets', JSON.stringify(generatedTickets));
+        renderGeneratedTickets();
+    }
+
+    function deleteStaticTicket() {
+        const staticContainer = document.getElementById('static-oasis-container');
+        if (staticContainer) {
+            staticContainer.style.display = 'none';
+            updateTicketCount();
+            updateDaysCount(); 
+        }
+    }
+
+    function updateTicketCount() {
+        let count = generatedTickets.length;
+        const staticContainer = document.getElementById('static-oasis-container');
+        if (staticContainer && staticContainer.style.display !== 'none') {
+            count++;
+        }
+        
+        const upcomingTab = document.getElementById('upcoming-tab');
+        if(upcomingTab) {
+            upcomingTab.innerHTML = `UPCOMING (${count})`;
+        }
+    }
+
+    function openOrderDetails(eventName, location, dateStr, section, row, seat, holder, orderNum, image, isGenerated = false, ticketId = null, entrance = 'Gate A', doors = '16:00') {
+        currentTicketData = { eventName, location, dateStr, section, row, seat, holder, orderNum, image, isGenerated, ticketId, entrance, doors };
+
+        document.getElementById('od-date').innerText = dateStr;
+        document.getElementById('od-title').innerText = eventName.toUpperCase();
+        document.getElementById('od-loc').innerText = location;
+        document.getElementById('od-order-num').innerText = `Order #${orderNum}`;
+        document.getElementById('od-section').innerText = section;
+        document.getElementById('od-row').innerText = row;
+        document.getElementById('od-seat').innerText = seat;
+        
+        document.getElementById('od-image').src = image;
+
+        document.getElementById('view-order-details').classList.add('active');
+        document.getElementById('view-order-details').scrollTop = 0;
+    }
+
+    function closeOrderDetails() {
+        document.getElementById('view-order-details').classList.remove('active');
+    }
+
+    function openBarcodeView() {
+        if(!currentTicketData) return;
+
+        const { eventName, location, dateStr, section, row, seat, holder, image, entrance, doors } = currentTicketData;
+
+        document.getElementById('bc-header-title').innerText = eventName.charAt(0).toUpperCase() + eventName.slice(1).toLowerCase();
+        
+        const parts = dateStr.split('•');
+        const datePart = parts[1] ? parts[1].trim() : dateStr;
+        const locPart = location.split(',')[0];
+        document.getElementById('bc-header-sub').innerText = `${datePart} - ${locPart}`;
+
+        document.getElementById('bc-section').innerText = section;
+        document.getElementById('bc-row').innerText = row;
+        document.getElementById('bc-seat').innerText = seat;
+        document.getElementById('bc-holder').innerText = holder;
+        document.getElementById('bc-entrance').innerText = entrance;
+        document.getElementById('bc-doors').innerText = doors;
+        
+        document.getElementById('bc-image').src = image;
+
+        const barcodeValue = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+        
+        try {
+            bwipjs.toCanvas('barcode-canvas', {
+                bcid:        'pdf417',
+                text:        barcodeValue,
+                scale:       3,
+                height:      10,
+                includetext: false,
+                textxalign:  'center',
+                padding:     0
+            });
+        } catch (e) {
+            console.error("Barcode generation failed", e);
+        }
+
+        document.getElementById('view-barcode').classList.add('active');
+    }
+
+    function closeBarcodeView() {
+        document.getElementById('view-barcode').classList.remove('active');
+    }
+
+    function openTransferModal() {
+        document.getElementById('transfer-modal-overlay').classList.add('active');
+    }
+
+    function closeTransferModal() {
+        document.getElementById('transfer-modal-overlay').classList.remove('active');
+        document.getElementById('transfer-name').value = '';
+        document.getElementById('transfer-email').value = '';
+    }
+
+    function confirmTransfer() {
+        const name = document.getElementById('transfer-name').value;
+        const email = document.getElementById('transfer-email').value;
+
+        if(!name || !email) {
+            alert("Please enter both a name and an email address.");
+            return;
+        }
+
+        alert(`Ticket successfully transferred to ${name} (${email}).`);
+        closeTransferModal();
+    }
+
+    window.onload = () => {
+        renderGeneratedTickets();
+    };
+
+    // FIXED DATE PARSING FUNCTION
+    function updateDaysCount() {
+        let dates = [];
+        
+        const staticContainer = document.getElementById('static-oasis-container');
+        if (staticContainer && staticContainer.style.display !== 'none') {
+            dates.push(new Date('May 21, 2027 20:00:00'));
+        }
+
+        generatedTickets.forEach(ticket => {
+            const parts = ticket.date.split('•');
+            if (parts.length >= 2) {
+                let dateStr = parts[1].trim(); // "MAY 21, 2027"
+                let timeStr = parts.length > 2 ? parts[2].trim() : "12:00 PM"; // "8:00 PM"
+                
+                // Combine them to a standard parseable string
+                let fullStr = `${dateStr} ${timeStr}`;
+                
+                const parsedDate = new Date(fullStr);
+                if (!isNaN(parsedDate.getTime())) {
+                    dates.push(parsedDate);
+                }
+            }
+        });
+
+        const daysEl = document.getElementById('days-count');
+        if (!daysEl) return;
+
+        if (dates.length === 0) {
+            daysEl.innerText = "0";
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let closestDiff = Infinity;
+
+        dates.forEach(date => {
+            // Reset to midnight for accurate day diff
+            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const diff = d - today;
+            
+            if (diff >= 0 && diff < closestDiff) {
+                closestDiff = diff;
+            }
+        });
+
+        if (closestDiff !== Infinity) {
+            const days = Math.round(closestDiff / (1000 * 60 * 60 * 24));
+            daysEl.innerText = days;
+        } else {
+            daysEl.innerText = "0"; 
+        }
+    }
+</script>
+
+</body>
+</html>

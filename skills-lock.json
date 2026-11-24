@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "skills": {
+    "dexiejs": {
+      "source": "devfirexyz/skills",
+      "commit": "2231a878013d3322e5768167cfd6dfce65fde1df",
+      "sourceType": "github",
+      "skillPath": "dexiejs/SKILL.md",
+      "computedHash": "a0d76ca5edbd1a9e5fa49b11d8077782149b1f691300091d091010678b5b7252"
+    },
+    "pwa-offline-first": {
+      "source": "peterbamuhigire/chwezi-dev-engine",
+      "commit": "af6369120cd2b4d3dd6917c2d3658621d080f7be",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-cross/pwa-offline-first/SKILL.md",
+      "computedHash": "baa50f7ca46adb32cacc86140d178e42eedde2a57227dc4683adfdb0111ba40e"
+    },
+    "tailwindcss": {
+      "source": "hairyf/skills",
+      "commit": "ffa1f904012f48f5bdf34ebb692daa09c778d47f",
+      "sourceType": "github",
+      "skillPath": "skills/tailwindcss/SKILL.md",
+      "computedHash": "a7ad5b9be2a266f7f7c972bdc1d167c82088b1e11b64127ebe3037f0597d25c3"
+    }
+  }
+}
